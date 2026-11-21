@@ -1,0 +1,42 @@
+id = "temet.sqlite"
+name = "sqlite"
+version = "0.1.0"
+min_ask_kit = "0.3.0"
+says = "a SQLite database file (an app's dev database, an agent's or tool's state database, a browser database, any .db, .sqlite or .sqlite3 file): which tables and columns it has, how many rows, what a row says, which table holds a value, how big it is, whether it is healthy or corrupt, its journal mode and WAL; and acting on it (any SQL that changes it: INSERT, UPDATE, DELETE, DDL, VACUUM)"
+keywords = ["sqlite3?", "\\.db\\b", "\\.sqlite3?\\b", "\\.db3\\b", "tables?", "columns?", "schema", "rows?", "index(es)?", "integrity_check", "vacuum", "wal", "pragma", "sql"]
+route_hint = "data and structure inside a SQLite file on disk (tables, columns, rows, values, size, integrity) is sqlite; a PostgreSQL server reached over a connection is postgres; what a past session did with a database is sessions; the code or migrations that create and query it are code"
+cite = "the file, table.column names, the SQL that produced the number, or a rowid or primary key"
+instructions = "instructions.md"
+scripts = "scripts"
+bench = "bench/questions.json"
+acts = ["sqlite.exec"]
+
+[[settings]]
+key = "WORKDIR"
+about = "the folder questions are about; by default the folder the agent runs in"
+detect = ["node", "-e", "process.stdout.write(process.cwd())"]
+
+[[settings]]
+key = "SQLITE_DB"
+about = "the database questions are about when none is named: a path, absolute or relative to the folder"
+default = ""
+
+[[sources]]
+kind = "module"
+name = "sqlite"
+module = "sqlite.mjs"
+api = "api.d.ts"
+
+[[actions]]
+name = "overview"
+title = "What a SQLite file holds"
+script = "overview"
+match = ['(?:what|which) tables (?:are|exist) (?:there )?in (?<file>[^\s?]+\.(?:db|db3|sqlite3?))', '(?:what is|what.s|whats) in (?<file>[^\s?]+\.(?:db|db3|sqlite3?))']
+expect = '"tables"'
+
+[[actions]]
+name = "health"
+title = "Whether a SQLite file is sound"
+script = "health"
+match = ['is (?<file>[^\s?]+\.(?:db|db3|sqlite3?)) (?:healthy|corrupt(?:ed)?|ok|okay|intact|damaged)']
+expect = '"verdict"'

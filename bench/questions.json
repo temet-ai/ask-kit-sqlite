@@ -1,0 +1,89 @@
+{
+  "database": "bench/fixture/watch.db, built by bench/fixture/build.mjs: the Ankh-Morpork City Watch (posts, guards, patrols, incidents, accounts, settings, the view on_patrol). Run the bench from the kit's folder, so the relative path resolves. Every question is a shot (a script and params, no model); the expectations were checked against the fixture on 2026-11-20. Questions for the model (`q`) are still to be added from real sessions.",
+  "questions": [
+    {
+      "id": "overview",
+      "do": "overview",
+      "params": { "file": "bench/fixture/watch.db" },
+      "expect": ["\"size\": \"76 KB\"", "\"name\": \"patrols\",\\s+\"rows\": 125", "\"kind\": \"view\"", "6 tables, 1 view, 151 rows in all", "biggest is patrols"]
+    },
+    {
+      "id": "describe-substring",
+      "do": "describe",
+      "params": { "file": "bench/fixture/watch.db", "table": "guard" },
+      "expect": ["\"table\": \"guards\"", "substring: \\\\\"guard\\\\\" is in guards", "rank TEXT not null default 'Constable'", "guards_post \\(post_id\\)", "post_id -> posts\\(id\\)", "patrols.guard_id -> id", "6 columns, 10 rows, primary key id"]
+    },
+    {
+      "id": "describe-secret-column",
+      "do": "describe",
+      "params": { "file": "bench/fixture/watch.db", "table": "accounts" },
+      "expect": ["password_hash TEXT not null \\(credential: values are redacted\\)", "api_token TEXT \\(credential", "\"matched\": \"exact\""]
+    },
+    {
+      "id": "find-column",
+      "do": "find-column",
+      "params": { "file": "bench/fixture/watch.db", "words": "guard_id" },
+      "expect": ["\"table\": \"accounts\"", "\"table\": \"patrols\"", "2 columns match \\(2 by exact name, 0 by substring\\) in 2 tables"]
+    },
+    {
+      "id": "find-table-by-name",
+      "do": "find-column",
+      "params": { "file": "bench/fixture/watch.db", "words": "patrol" },
+      "expect": ["\"name\": \"on_patrol\",\\s+\"kind\": \"view\"", "\"name\": \"patrols\",\\s+\"kind\": \"table\"", "0 columns match"]
+    },
+    {
+      "id": "sample-newest",
+      "do": "sample",
+      "params": { "file": "bench/fixture/watch.db", "table": "patrols", "n": 2 },
+      "expect": ["started_at, rowid descending \\(newest first\\)", "2026-10-13T22:15:00Z", "Could not sleep", "2 of 125 rows of patrols"]
+    },
+    {
+      "id": "sample-where-redacted",
+      "do": "sample",
+      "params": { "file": "bench/fixture/watch.db", "table": "accounts", "where": "api_token is not null" },
+      "expect": ["\"username\": \"vimes\"", "\"password_hash\": \"<redacted>\"", "\"api_token\": \"<redacted>\"", "3 of 3 rows of accounts that match"]
+    },
+    {
+      "id": "sample-key-value-redacted",
+      "do": "sample",
+      "params": { "file": "bench/fixture/watch.db", "table": "settings" },
+      "expect": ["\"key\": \"clacks_password\",\\s+\"value\": \"<redacted>\"", "\"value\": \"clacks.example.com\"", "Ankh-Morpork"]
+    },
+    {
+      "id": "where-value",
+      "do": "where-value",
+      "params": { "file": "bench/fixture/watch.db", "value": "WATCH-12" },
+      "expect": ["is in incidents.ref \\(1\\), patrols.notes \\(1\\)", "id=38", "the dragon was not at home", "accounts.password_hash", "2 credential columns not searched"]
+    },
+    {
+      "id": "where-value-exact-number",
+      "do": "where-value",
+      "params": { "file": "bench/fixture/watch.db", "value": 99, "exact": true },
+      "expect": ["\"match\": \"exact\"", "patrols.guard_id \\(1\\)", "id=125"]
+    },
+    {
+      "id": "where-value-secret-not-found",
+      "do": "where-value",
+      "params": { "file": "bench/fixture/watch.db", "value": "swordfish" },
+      "expect": ["\"hits\": \\[\\]", "was not found in 6 tables"]
+    },
+    {
+      "id": "health",
+      "do": "health",
+      "params": { "file": "bench/fixture/watch.db" },
+      "expect": ["\"ok\": true", "\"violations\": 1", "\"table\": \"patrols\",\\s+\"references\": \"guards\"", "VACUUM would give back at least 16 KB \\(21% of the file is free pages\\)", "sound, with foreign key violations: quick_check ok"]
+    },
+    {
+      "id": "health-full",
+      "do": "health",
+      "params": { "file": "bench/fixture/watch.db", "full": true },
+      "expect": ["\"check\": \"integrity_check\"", "integrity_check ok", "journal mode delete"]
+    },
+    {
+      "id": "missing-file",
+      "do": "overview",
+      "params": { "file": "bench/fixture/klatch.db" },
+      "expect": ["no such file", "klatch.db", "watch.db", "cannot read the database"]
+    }
+  ]
+}
